@@ -1,8 +1,11 @@
 package br.com.daviaxs.todolist.task;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,13 +21,23 @@ public class TaskController {
   private ITaskRepository taskRepository;
 
   @PostMapping("/")
-  public TaskModel create(@RequestBody TaskModel taskModel, HttpServletRequest request) {
+  public ResponseEntity create(@RequestBody TaskModel taskModel, HttpServletRequest request) {
     var idUser = request.getAttribute("idUser");
-    
+    var currentDate = LocalDateTime.now();
+    var taskStartAt = taskModel.getStartAt();
+    var taskEndAt = taskModel.getEndAt();
+
     taskModel.setIdUser((UUID) idUser);
 
-    var task = this.taskRepository.save(taskModel);
+    if (currentDate.isAfter(taskStartAt) || currentDate.isAfter(taskEndAt)) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("A data de início / data de término devem ser maior do que a data atual.");
+    }
 
-    return task;
+    if (taskStartAt.isAfter(taskEndAt)) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("A data de início deve ser maior do que a data de término.");
+    }
+
+    var task = this.taskRepository.save(taskModel);
+    return ResponseEntity.status(HttpStatus.OK).body(task);
   }
 }
