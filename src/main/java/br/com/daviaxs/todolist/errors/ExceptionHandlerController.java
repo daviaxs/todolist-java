@@ -11,6 +11,6 @@ public class ExceptionHandlerController {
   
   @ExceptionHandler(HttpMessageNotReadableException.class)
   public ResponseEntity<String> handleHttpMessageNotReadableException(HttpMessageNotReadableException exception) {
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMostSpecificCause().getMessage());
   }
 }
